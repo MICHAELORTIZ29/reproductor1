@@ -47,6 +47,12 @@
     <button onclick="prev()">⏮</button>
     <button onclick="playPause()">▶️</button>
     <button onclick="next()">⏭</button>
+
+    <div class="progress-container">
+      <span id="currentTime">0:00</span>
+      <input type="range" id="progress" value="0">
+      <span id="totalTime">0:00</span>
+    </div>
   </div>
 
   <div class="extra">
@@ -56,6 +62,7 @@
 
   <audio id="audio"></audio>
 </footer>
+
 
 <script src="app.js"></script>
 

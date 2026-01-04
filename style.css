@@ -103,3 +103,41 @@ body {
     display: none;
   }
 }
+.song-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.delete-btn:hover {
+  color: red;
+}
+.duration {
+  color: #aaa;
+  font-size: 12px;
+  margin-right: 10px;
+}
+
+.song-item.active {
+  background: #1db954;
+  color: black;
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 300px;
+}
+
+.progress-container input {
+  flex: 1;
+}
