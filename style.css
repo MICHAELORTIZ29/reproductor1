@@ -8,11 +8,17 @@ body {
   background: #121212;
   color: white;
 }
+@supports (padding: env(safe-area-inset-bottom)) {
+  .player {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+}
 
 .app {
   display: flex;
-  height: calc(100vh - 90px);
+  height: calc(100vh - 180px); /* ⬅️ deja espacio real al footer */
 }
+
 
 /* SIDEBAR */
 .sidebar {
@@ -245,3 +251,82 @@ body {
 .app {
   height: calc(100vh - 120px);
 }
+
+/* =========================
+   PLAYER - MOBILE PRO
+========================= */
+.player {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom); /* ⬅️ iPhone safe */
+  left: 0;
+  width: 100%;
+  background: #181818;
+  color: white;
+
+  padding: 16px 14px 20px; /* ⬅️ MÁS ESPACIO ABAJO */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  min-height: 160px; /* ⬅️ CLAVE: espacio para botones grandes */
+  z-index: 999;
+}
+
+/* TITULO */
+.player-top {
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* PROGRESO */
+.player-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.player-progress input {
+  flex: 1;
+}
+
+/* CONTROLES + VOLUMEN */
+.player-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* BOTONES GRANDES */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.controls button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 36px;
+  padding: 12px; /* área táctil */
+}
+
+.play-btn {
+  font-size: 52px;
+  background: #1db954;
+  color: black;
+  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* VOLUMEN VISIB*
