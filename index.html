@@ -39,29 +39,36 @@
 
 <!-- PLAYER -->
 <footer class="player">
-  <div class="info">
+
+  <!-- INFO -->
+  <div class="player-info">
     <span id="currentTitle">Sin reproducción</span>
   </div>
 
-  <div class="controls">
-    <button onclick="prev()">⏮</button>
-    <button onclick="playPause()">▶️</button>
-    <button onclick="next()">⏭</button>
-
-    <div class="progress-container">
-      <span id="currentTime">0:00</span>
-      <input type="range" id="progress" value="0">
-      <span id="totalTime">0:00</span>
-    </div>
+  <!-- PROGRESO -->
+  <div class="player-progress">
+    <span id="currentTime">0:00</span>
+    <input type="range" id="progress" value="0">
+    <span id="totalTime">0:00</span>
   </div>
 
-  <div class="extra">
+  <!-- CONTROLES -->
+  <div class="player-controls">
+    <button onclick="prev()">⏮</button>
+    <button class="play-btn" onclick="playPause()">▶️</button>
+    <button onclick="next()">⏭</button>
     <button onclick="toggleFavorite()">❤️</button>
+  </div>
+
+  <!-- VOLUMEN -->
+  <div class="player-volume">
+    🔊
     <input type="range" min="0" max="1" step="0.01" onchange="setVolume(this.value)">
   </div>
 
   <audio id="audio"></audio>
 </footer>
+
 
 
 <script src="app.js"></script>

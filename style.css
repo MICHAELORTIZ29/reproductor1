@@ -141,3 +141,107 @@ body {
 .progress-container input {
   flex: 1;
 }
+/* =======================
+   PLAYER - MOBILE FIRST
+======================= */
+.player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #181818;
+  color: white;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+
+/* INFO */
+.player-info {
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* PROGRESO */
+.player-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.player-progress input {
+  flex: 1;
+}
+
+/* CONTROLES */
+.player-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+}
+
+.player-controls button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.play-btn {
+  font-size: 28px;
+}
+
+/* VOLUMEN */
+.player-volume {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-volume input {
+  flex: 1;
+}
+
+/* =======================
+   DESKTOP
+======================= */
+@media (min-width: 768px) {
+  .player {
+    flex-direction: row;
+    align-items: center;
+    height: 90px;
+  }
+
+  .player-info {
+    width: 25%;
+    text-align: left;
+  }
+
+  .player-progress {
+    width: 40%;
+  }
+
+  .player-controls {
+    width: 20%;
+  }
+
+  .player-volume {
+    width: 15%;
+  }
+}
+
+/* =======================
+   AJUSTE ALTURA APP
+======================= */
+.app {
+  height: calc(100vh - 120px);
+}
