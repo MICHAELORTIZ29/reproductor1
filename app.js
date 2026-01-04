@@ -73,8 +73,13 @@ function playSong(index) {
 }
 
 function playPause() {
-  if (audio.src === "") return;
-  audio.paused ? audio.play() : audio.pause();
+  if (!audio.src) return;
+
+  if (audio.paused) {
+    audio.play();
+  } else {
+    audio.pause();
+  }
 }
 
 function next() {
@@ -158,4 +163,22 @@ function formatTime(seconds) {
   const min = Math.floor(seconds / 60);
   const sec = Math.floor(seconds % 60).toString().padStart(2, "0");
   return `${min}:${sec}`;
+}
+
+const playBtn = document.querySelector(".play-btn");
+
+audio.addEventListener("play", () => {
+  playBtn.textContent = "⏸";
+});
+
+audio.addEventListener("pause", () => {
+  playBtn.textContent = "▶️";
+});
+
+function playSong(index) {
+  currentIndex = index;
+  audio.src = URL.createObjectURL(songs[index].file);
+  currentTitle.textContent = songs[index].name;
+  audio.play();
+  renderList();
 }

@@ -330,3 +330,43 @@ body {
 }
 
 /* VOLUMEN VISIB*
+
+/* =========================
+   FOOTER LIMPIO - MOBILE
+========================= */
+@media (max-width: 768px) {
+
+  .player {
+    min-height: 140px;
+    padding: 14px 14px 18px;
+  }
+
+  .player-bottom {
+    justify-content: center;
+  }
+
+  .controls {
+    gap: 26px;
+  }
+
+  .controls button {
+    font-size: 38px;
+    padding: 12px;
+  }
+
+  .play-btn {
+    font-size: 56px;
+    width: 76px;
+    height: 76px;
+  }
+
+}
+
+.play-btn {
+  transition: transform 0.15s ease;
+}
+
+.play-btn:active {
+  transform: scale(0.9);
+}
+
