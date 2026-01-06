@@ -35,6 +35,7 @@ fileInput.addEventListener("change", async () => {
 function renderList() {
   songList.innerHTML = "";
 
+
   songs.forEach((song, index) => {
     const li = document.createElement("li");
     li.className = "song-item";
@@ -48,6 +49,40 @@ function renderList() {
     time.className = "duration";
     time.textContent = formatTime(song.duration);
 
+    const favBtn = document.createElement("button");
+    favBtn.className = "fav-btn";
+    favBtn.textContent = favorites.includes(song.name) ? "❤️" : "🤍";
+    favBtn.onclick = (e) => {
+      e.stopPropagation();
+      toggleFavorite(song.name);
+    };
+function showFavorites() {
+  const favSongs = songs.filter(song =>
+    favorites.includes(song.name)
+  );
+
+  songList.innerHTML = "";
+
+  favSongs.forEach(song => {
+    const index = songs.indexOf(song);
+    playSong(index);
+  });
+
+  renderList();
+}
+
+    function toggleFavorite(songName) {
+  if (favorites.includes(songName)) {
+    favorites = favorites.filter(f => f !== songName);
+  } else {
+    favorites.push(songName);
+  }
+
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+  renderList();
+}
+
+
     const delBtn = document.createElement("button");
     delBtn.textContent = "🗑️";
     delBtn.className = "delete-btn";
@@ -56,10 +91,11 @@ function renderList() {
       deleteSong(index);
     };
 
-    li.append(title, time, delBtn);
+    li.append(title, time, favBtn, delBtn);
     songList.appendChild(li);
   });
 }
+
 
 /* =========================
    REPRODUCCIÓN
@@ -181,4 +217,11 @@ function playSong(index) {
   currentTitle.textContent = songs[index].name;
   audio.play();
   renderList();
+}
+const shuffleBtn = document.getElementById("shuffleBtn");
+
+function toggleShuffle() {
+  shuffle = !shuffle;
+  shuffleBtn.textContent = shuffle ? "🔀" : "➡️";
+  shuffleBtn.style.color = shuffle ? "#1db954" : "white";
 }
