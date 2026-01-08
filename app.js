@@ -6,8 +6,8 @@ const progress = document.getElementById("progress");
 const currentTimeEl = document.getElementById("currentTime");
 const totalTimeEl = document.getElementById("totalTime");
 
-const CLOUD_NAME = "TU_CLOUD_NAME";
-const UPLOAD_PRESET = "TU_UPLOAD_PRESET";
+const CLOUD_NAME = "dj2romk53";
+const UPLOAD_PRESET = "biblioteca1";
 
 
 let songs = [];
