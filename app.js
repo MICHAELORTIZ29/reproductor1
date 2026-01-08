@@ -6,6 +6,10 @@ const progress = document.getElementById("progress");
 const currentTimeEl = document.getElementById("currentTime");
 const totalTimeEl = document.getElementById("totalTime");
 
+const CLOUD_NAME = "TU_CLOUD_NAME";
+const UPLOAD_PRESET = "TU_UPLOAD_PRESET";
+
+
 let songs = [];
 let currentIndex = -1;
 let shuffle = false;
@@ -14,7 +18,28 @@ let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 /* =========================
    SUBIR MÚSICA LOCAL
 ========================= */
+
 fileInput.addEventListener("change", async () => {
+  const files = Array.from(fileInput.files);
+
+  for (const file of files) {
+    const cloudRes = await uploadToCloudinary(file);
+
+    songs.push({
+      name: cloudRes.original_filename,
+      url: cloudRes.secure_url,
+      duration: 0 // luego la calculamos
+    });
+  }
+
+  saveSongs();
+  renderList();
+});
+
+
+
+
+/*fileInput.addEventListener("change", async () => {
   const files = Array.from(fileInput.files);
 
   for (const file of files) {
@@ -32,6 +57,8 @@ fileInput.addEventListener("change", async () => {
 /* =========================
    RENDER LISTA
 ========================= */
+
+
 function renderList() {
   songList.innerHTML = "";
 
@@ -102,11 +129,16 @@ function showFavorites() {
 ========================= */
 function playSong(index) {
   currentIndex = index;
-  audio.src = URL.createObjectURL(songs[index].file);
-  currentTitle.textContent = songs[index].name;
+
+  const song = songs[index];
+  audio.src = song.url;
+
+  currentTitle.textContent = song.name;
   audio.play();
+
   renderList();
 }
+
 
 function playPause() {
   if (!audio.src) return;
@@ -225,3 +257,31 @@ function toggleShuffle() {
   shuffleBtn.textContent = shuffle ? "🔀" : "➡️";
   shuffleBtn.style.color = shuffle ? "#1db954" : "white";
 }
+async function uploadToCloudinary(file) {
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", UPLOAD_PRESET);
+
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData
+  });
+
+  return await response.json();
+}
+
+function saveSongs() {
+  localStorage.setItem("songs", JSON.stringify(songs));
+}
+
+function loadSongs() {
+  const stored = JSON.parse(localStorage.getItem("songs"));
+  if (stored) {
+    songs = stored;
+    renderList();
+  }
+}
+
+loadSongs();
