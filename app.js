@@ -89,11 +89,20 @@ function renderList() {
 ========================= */
 function playSong(index) {
   currentIndex = index;
-  audio.src = songs[index].url;
-  currentTitle.textContent = songs[index].name;
-  audio.play();
+  const song = songs[index];
+
+  audio.pause();
+  audio.src = song.url;
+  audio.load();               // 🔑 CLAVE
+  currentTitle.textContent = song.name;
+
+  audio.play().catch(err => {
+    console.log("Play bloqueado:", err);
+  });
+
   renderList();
 }
+
 
 function playPause() {
   if (!audio.src) return;
@@ -187,3 +196,8 @@ function loadSongs() {
 }
 
 loadSongs();
+
+audio.addEventListener("error", () => {
+  console.log("Error audio:", audio.error);
+  console.log("Src:", audio.src);
+});
