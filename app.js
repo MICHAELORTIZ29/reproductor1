@@ -1,10 +1,14 @@
 /* =========================
-   SUPABASE CONFIG
+   SUPABASE CONFIG (SAFE)
 ========================= */
-const supabase = window.supabase.createClient(
-  "https://tjbkohttbscyyribslyu.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqYmtvaHR0YnNjeXlyaWJzbHl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTY0MTEsImV4cCI6MjA4MzQ5MjQxMX0.gUAoJDE3jr1HRSx6BF6hX2nNVEvZddptz9FkZLNWD5A"
-);
+if (!window._supabaseClient) {
+  window._supabaseClient = window.supabase.createClient(
+    "https://tjbkohttbscyyribslyu.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqYmtvaHR0YnNjeXlyaWJzbHl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTY0MTEsImV4cCI6MjA4MzQ5MjQxMX0.gUAoJDE3jr1HRSx6BF6hX2nNVEvZddptz9FkZLNWD5A"
+  );
+}
+
+const supabaseClient = window._supabaseClient;
 
 /* =========================
    DOM
@@ -33,23 +37,25 @@ fileInput.addEventListener("change", async () => {
   const files = [...fileInput.files];
   if (!files.length) return;
 
-  for (const file of files) {
-    const filePath = `${Date.now()}_${file.name}`;
+  alert("Subiendo música...");
 
-    const { error } = await supabase
+  for (const file of files) {
+    const path = `${Date.now()}_${file.name}`;
+
+    const { error } = await supabaseClient
       .storage
       .from("biblioteca1")
-      .upload(filePath, file);
+      .upload(path, file);
 
     if (error) {
       alert(error.message);
       continue;
     }
 
-    const { data } = supabase
+    const { data } = supabaseClient
       .storage
       .from("biblioteca1")
-      .getPublicUrl(filePath);
+      .getPublicUrl(path);
 
     songs.push({
       name: file.name,
@@ -67,7 +73,6 @@ fileInput.addEventListener("change", async () => {
 ========================= */
 function renderList() {
   songList.innerHTML = "";
-
   songs.forEach((song, i) => {
     const li = document.createElement("li");
     li.textContent = song.name;
@@ -103,7 +108,7 @@ function prev() {
 
 function toggleShuffle() {
   shuffle = !shuffle;
-  shuffleBtn.style.color = shuffle ? "green" : "black";
+  shuffleBtn.style.color = shuffle ? "#1db954" : "white";
 }
 
 /* =========================
