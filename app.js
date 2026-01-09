@@ -14,10 +14,9 @@ const UPLOAD_PRESET = "biblioteca1";
 let songs = [];
 let currentIndex = -1;
 let shuffle = false;
-let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 
 /* =========================
-   CLOUDINARY UPLOAD
+   CLOUDINARY
 ========================= */
 async function uploadToCloudinary(file) {
   const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
@@ -29,24 +28,32 @@ async function uploadToCloudinary(file) {
   return await res.json();
 }
 
+/* =========================
+   SUBIR MÚSICA
+========================= */
 fileInput.addEventListener("change", async () => {
   const files = Array.from(fileInput.files);
+  if (!files.length) return;
 
   for (const file of files) {
-    const cloudRes = await uploadToCloudinary(file);
+    try {
+      const cloud = await uploadToCloudinary(file);
+      if (!cloud.secure_url) continue;
 
-    songs.push({
-      name: cloudRes.original_filename,
-      url: cloudRes.secure_url,
-      duration: 0
-    });
+      songs.push({
+        name: cloud.original_filename || file.name,
+        url: cloud.secure_url,
+        duration: 0
+      });
+    } catch (e) {
+      console.error("Error subida:", e);
+    }
   }
 
   saveSongs();
   renderList();
-  fileInput.value = ""; // 🔑 permite volver a subir los mismos archivos
+  fileInput.value = "";
 });
-
 
 /* =========================
    LISTA
@@ -67,21 +74,14 @@ function renderList() {
     time.className = "duration";
     time.textContent = formatTime(song.duration);
 
-    const favBtn = document.createElement("button");
-    favBtn.textContent = favorites.includes(song.name) ? "❤️" : "🤍";
-    favBtn.onclick = e => {
-      e.stopPropagation();
-      toggleFavorite(song.name);
-    };
-
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "🗑️";
-    delBtn.onclick = e => {
+    const del = document.createElement("button");
+    del.textContent = "🗑️";
+    del.onclick = e => {
       e.stopPropagation();
       deleteSong(index);
     };
 
-    li.append(title, time, favBtn, delBtn);
+    li.append(title, time, del);
     songList.appendChild(li);
   });
 }
@@ -95,32 +95,12 @@ function playSong(index) {
 
   audio.pause();
   audio.src = song.url;
-  audio.load();               // 🔑 CLAVE
-  currentTitle.textContent = song.name;
-
-  audio.play().catch(err => {
-    console.log("Play bloqueado:", err);
-  });
-
-  renderList();
-}
-function playSong(index) {
-  currentIndex = index;
-  const song = songs[index];
-
-  audio.pause();
-  audio.src = song.url;
   audio.load();
-
   currentTitle.textContent = song.name;
 
-  audio.play().catch(err => {
-    console.log("Play bloqueado:", err);
-  });
-
+  audio.play().catch(() => {});
   renderList();
 }
-
 
 function playPause() {
   if (!audio.src) return;
@@ -150,6 +130,7 @@ audio.addEventListener("timeupdate", () => {
 });
 
 audio.addEventListener("loadedmetadata", () => {
+  if (currentIndex < 0) return;
   totalTimeEl.textContent = formatTime(audio.duration);
   songs[currentIndex].duration = audio.duration;
   saveSongs();
@@ -162,36 +143,18 @@ progress.addEventListener("input", () => {
 audio.addEventListener("ended", next);
 
 /* =========================
-   FAVORITOS
-========================= */
-function toggleFavorite(name) {
-  favorites = favorites.includes(name)
-    ? favorites.filter(f => f !== name)
-    : [...favorites, name];
-
-  localStorage.setItem("favorites", JSON.stringify(favorites));
-  renderList();
-}
-
-/* =========================
    EXTRAS
 ========================= */
-function deleteSong(index) {
-  if (!confirm("¿Eliminar canción?")) return;
-  songs.splice(index, 1);
-  saveSongs();
-  renderList();
-}
-
 function toggleShuffle() {
   shuffle = !shuffle;
   shuffleBtn.style.color = shuffle ? "#1db954" : "white";
 }
 
-function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
+function deleteSong(index) {
+  if (!confirm("¿Eliminar canción?")) return;
+  songs.splice(index, 1);
+  saveSongs();
+  renderList();
 }
 
 /* =========================
@@ -209,15 +172,14 @@ function saveSongs() {
 
 function loadSongs() {
   const stored = JSON.parse(localStorage.getItem("songs"));
-  if (stored && Array.isArray(stored)) {
-    songs = stored;
-  }
+  if (stored) songs = stored;
 }
 
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
 
 loadSongs();
-
-audio.addEventListener("error", () => {
-  console.log("Error audio:", audio.error);
-  console.log("Src:", audio.src);
-});
+renderList();
