@@ -19,7 +19,30 @@ body {
   height: calc(100vh - 180px); /* ⬅️ deja espacio real al footer */
 }
 
+@media (max-width: 768px) {
+  .app {
+    height: auto;
+  }
 
+  .main {
+    padding-bottom: 140px;
+  }
+
+  .player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    z-index: 1000;
+  }
+
+  #songList li {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+}
+ 
 /* SIDEBAR */
 .sidebar {
   width: 220px;

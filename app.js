@@ -6,7 +6,6 @@ const progress = document.getElementById("progress");
 const currentTimeEl = document.getElementById("currentTime");
 const totalTimeEl = document.getElementById("totalTime");
 const playBtn = document.querySelector(".play-btn");
-const shuffleBtn = document.getElementById("shuffleBtn");
 
 const CLOUD_NAME = "dj2romk53";
 const UPLOAD_PRESET = "biblioteca1";
@@ -16,81 +15,55 @@ let currentIndex = -1;
 let shuffle = false;
 
 /* =========================
-   CLOUDINARY
+   CLOUDINARY UPLOAD
 ========================= */
 async function uploadToCloudinary(file) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60000); // 60s
-
   const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", UPLOAD_PRESET);
 
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      body: formData,
-      signal: controller.signal
-    });
+  const res = await fetch(url, { method: "POST", body: formData });
+  const data = await res.json();
 
-    clearTimeout(timeout);
-    return await res.json();
-  } catch (err) {
-    console.error("Cloudinary no respondió", err);
-    return null;
+  if (!data.secure_url) {
+    throw new Error("Upload fallido");
   }
+  return data;
 }
-
 
 /* =========================
    SUBIR MÚSICA
 ========================= */
-const overlay = document.getElementById("uploadOverlay");
-const uploadText = document.getElementById("uploadText");
-
 fileInput.addEventListener("change", async () => {
   const files = Array.from(fileInput.files);
   if (!files.length) return;
 
-  fileInput.disabled = true;
-  overlay.classList.remove("hidden");
-
-  let added = 0;
+  alert("Subiendo música, espera…");
 
   for (const file of files) {
-    uploadText.textContent = `Subiendo: ${file.name}`;
+    try {
+      const cloud = await uploadToCloudinary(file);
 
-    const cloud = await uploadToCloudinary(file);
+      // evitar duplicados
+      if (songs.some(s => s.url === cloud.secure_url)) continue;
 
-    if (!cloud || !cloud.secure_url) {
-      alert(
-        "⚠️ Cloudinary no aceptó el archivo.\n" +
-        "Posible límite alcanzado o preset bloqueado."
-      );
-      break;
+      songs.push({
+        name: cloud.original_filename || file.name,
+        url: cloud.secure_url,
+        duration: 0
+      });
+
+    } catch (e) {
+      alert(`Error subiendo ${file.name}`);
+      console.error(e);
     }
-
-    songs.push({
-      name: cloud.original_filename || file.name,
-      url: cloud.secure_url,
-      duration: 0
-    });
-
-    added++;
   }
 
-  overlay.classList.add("hidden");
-  fileInput.disabled = false;
+  saveSongs();
+  renderList();
   fileInput.value = "";
-
-  if (added > 0) {
-    saveSongs();
-    renderList();
-    alert(`✅ ${added} canción(es) subida(s) correctamente`);
-  }
 });
-
 
 /* =========================
    LISTA
@@ -146,9 +119,7 @@ function playPause() {
 
 function next() {
   if (!songs.length) return;
-  currentIndex = shuffle
-    ? Math.floor(Math.random() * songs.length)
-    : (currentIndex + 1) % songs.length;
+  currentIndex = (currentIndex + 1) % songs.length;
   playSong(currentIndex);
 }
 
@@ -180,21 +151,6 @@ progress.addEventListener("input", () => {
 audio.addEventListener("ended", next);
 
 /* =========================
-   EXTRAS
-========================= */
-function toggleShuffle() {
-  shuffle = !shuffle;
-  shuffleBtn.style.color = shuffle ? "#1db954" : "white";
-}
-
-function deleteSong(index) {
-  if (!confirm("¿Eliminar canción?")) return;
-  songs.splice(index, 1);
-  saveSongs();
-  renderList();
-}
-
-/* =========================
    UI
 ========================= */
 audio.addEventListener("play", () => playBtn.textContent = "⏸");
@@ -209,7 +165,16 @@ function saveSongs() {
 
 function loadSongs() {
   const stored = JSON.parse(localStorage.getItem("songs"));
-  if (stored) songs = stored;
+  if (Array.isArray(stored)) {
+    songs = stored.filter(s => s.url); // limpia corruptos
+  }
+}
+
+function deleteSong(index) {
+  if (!confirm("¿Eliminar canción?")) return;
+  songs.splice(index, 1);
+  saveSongs();
+  renderList();
 }
 
 function formatTime(sec) {
