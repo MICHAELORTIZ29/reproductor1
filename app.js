@@ -40,7 +40,8 @@ fileInput.addEventListener("change", async () => {
   alert("Subiendo música...");
 
   for (const file of files) {
-    const path = `${Date.now()}_${file.name}`;
+    const safeName = sanitizeFileName(file.name);
+    const path = `${Date.now()}_${safeName}`;
 
     const { error } = await supabaseClient
       .storage
@@ -48,7 +49,7 @@ fileInput.addEventListener("change", async () => {
       .upload(path, file);
 
     if (error) {
-      alert(error.message);
+      alert("Error: " + error.message);
       continue;
     }
 
@@ -58,10 +59,16 @@ fileInput.addEventListener("change", async () => {
       .getPublicUrl(path);
 
     songs.push({
-      name: file.name,
+      name: file.name,          // nombre original para mostrar
       url: data.publicUrl
     });
   }
+
+  localStorage.setItem("songs", JSON.stringify(songs));
+  renderList();
+  fileInput.value = "";
+});
+
 
   localStorage.setItem("songs", JSON.stringify(songs));
   renderList();
@@ -139,3 +146,10 @@ function format(t) {
 const saved = localStorage.getItem("songs");
 if (saved) songs = JSON.parse(saved);
 renderList();
+
+function sanitizeFileName(name) {
+  return name
+    .normalize("NFD")                 // quita tildes
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9.-]/g, "_"); // solo caracteres seguros
+}
