@@ -1,17 +1,13 @@
 /* =========================
    SUPABASE CONFIG
 ========================= */
-const SUPABASE_URL = "https://tjbkohttbscyyribslyu.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqYmtvaHR0YnNjeXlyaWJzbHl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTY0MTEsImV4cCI6MjA4MzQ5MjQxMX0.gUAoJDE3jr1HRSx6BF6hX2nNVEvZddptz9FkZLNWD5A";
-
 const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
+  "https://tjbkohttbscyyribslyu.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqYmtvaHR0YnNjeXlyaWJzbHl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTY0MTEsImV4cCI6MjA4MzQ5MjQxMX0.gUAoJDE3jr1HRSx6BF6hX2nNVEvZddptz9FkZLNWD5A"
 );
 
 /* =========================
-   ELEMENTOS DOM
+   DOM
 ========================= */
 const audio = document.getElementById("audio");
 const fileInput = document.getElementById("fileInput");
@@ -24,76 +20,47 @@ const playBtn = document.querySelector(".play-btn");
 const shuffleBtn = document.getElementById("shuffleBtn");
 
 /* =========================
-   ESTADO
+   STATE
 ========================= */
 let songs = [];
 let currentIndex = -1;
 let shuffle = false;
 
 /* =========================
-   STORAGE
-========================= */
-function saveSongs() {
-  localStorage.setItem("songs", JSON.stringify(songs));
-}
-
-function loadSongs() {
-  const stored = JSON.parse(localStorage.getItem("songs"));
-  if (Array.isArray(stored)) songs = stored;
-}
-
-/* =========================
    SUBIR A SUPABASE
 ========================= */
-async function uploadSong(file) {
-  const ext = file.name.split(".").pop();
-  const fileName = `${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2)}.${ext}`;
-
-  const { error } = await supabase.storage
-    .from("music")
-    .upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: false
-    });
-
-  if (error) throw error;
-
-  const { data } = supabase.storage
-    .from("music")
-    .getPublicUrl(fileName);
-
-  return {
-    name: file.name,
-    url: data.publicUrl,
-    duration: 0
-  };
-}
-
-/* =========================
-   SUBIR MÚSICA
-========================= */
 fileInput.addEventListener("change", async () => {
-  const files = Array.from(fileInput.files);
+  const files = [...fileInput.files];
   if (!files.length) return;
 
-  alert("Subiendo canciones, espera…");
+  alert("Subiendo música...");
 
   for (const file of files) {
-    try {
-      const song = await uploadSong(file);
-      songs.push(song);
-    } catch (e) {
-      alert("Error subiendo: " + file.name);
-      console.error(e);
+    const path = `music/${Date.now()}_${file.name}`;
+
+    const { error } = await supabase.storage
+      .from("music")
+      .upload(path, file);
+
+    if (error) {
+      alert("Error subiendo: " + error.message);
+      continue;
     }
+
+    const { data } = supabase.storage
+      .from("music")
+      .getPublicUrl(path);
+
+    songs.push({
+      name: file.name,
+      url: data.publicUrl,
+      duration: 0
+    });
   }
 
   saveSongs();
   renderList();
   fileInput.value = "";
-  alert("Subida completada ✅");
 });
 
 /* =========================
@@ -111,10 +78,6 @@ function renderList() {
     title.textContent = song.name;
     title.onclick = () => playSong(index);
 
-    const time = document.createElement("span");
-    time.className = "duration";
-    time.textContent = formatTime(song.duration);
-
     const del = document.createElement("button");
     del.textContent = "🗑️";
     del.onclick = e => {
@@ -122,7 +85,7 @@ function renderList() {
       deleteSong(index);
     };
 
-    li.append(title, time, del);
+    li.append(title, del);
     songList.appendChild(li);
   });
 }
@@ -140,7 +103,7 @@ function playSong(index) {
 
   currentTitle.textContent = song.name;
 
-  audio.play().catch(err => console.log("Play bloqueado", err));
+  audio.play().catch(() => {});
   renderList();
 }
 
@@ -173,10 +136,6 @@ audio.addEventListener("timeupdate", () => {
 
 audio.addEventListener("loadedmetadata", () => {
   totalTimeEl.textContent = formatTime(audio.duration);
-  if (currentIndex >= 0) {
-    songs[currentIndex].duration = audio.duration;
-    saveSongs();
-  }
 });
 
 progress.addEventListener("input", () => {
@@ -188,6 +147,11 @@ audio.addEventListener("ended", next);
 /* =========================
    EXTRAS
 ========================= */
+function toggleShuffle() {
+  shuffle = !shuffle;
+  shuffleBtn.style.color = shuffle ? "#1db954" : "white";
+}
+
 function deleteSong(index) {
   if (!confirm("¿Eliminar canción?")) return;
   songs.splice(index, 1);
@@ -195,16 +159,23 @@ function deleteSong(index) {
   renderList();
 }
 
-function toggleShuffle() {
-  shuffle = !shuffle;
-  shuffleBtn.style.color = shuffle ? "#1db954" : "white";
-}
-
 /* =========================
    UI
 ========================= */
-audio.addEventListener("play", () => (playBtn.textContent = "⏸"));
-audio.addEventListener("pause", () => (playBtn.textContent = "▶️"));
+audio.addEventListener("play", () => playBtn.textContent = "⏸");
+audio.addEventListener("pause", () => playBtn.textContent = "▶️");
+
+/* =========================
+   STORAGE
+========================= */
+function saveSongs() {
+  localStorage.setItem("songs", JSON.stringify(songs));
+}
+
+function loadSongs() {
+  const stored = JSON.parse(localStorage.getItem("songs"));
+  if (stored) songs = stored;
+}
 
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
@@ -212,8 +183,5 @@ function formatTime(sec) {
   return `${m}:${s}`;
 }
 
-/* =========================
-   INIT
-========================= */
 loadSongs();
 renderList();
