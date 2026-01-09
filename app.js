@@ -36,10 +36,10 @@ fileInput.addEventListener("change", async () => {
   alert("Subiendo música...");
 
   for (const file of files) {
-    const path = `music/${Date.now()}_${file.name}`;
+    const path = `biblioteca1/${Date.now()}_${file.name}`;
 
     const { error } = await supabase.storage
-      .from("music")
+      .from("biblioteca1")
       .upload(path, file);
 
     if (error) {
@@ -48,7 +48,7 @@ fileInput.addEventListener("change", async () => {
     }
 
     const { data } = supabase.storage
-      .from("music")
+      .from("biblioteca1")
       .getPublicUrl(path);
 
     songs.push({
