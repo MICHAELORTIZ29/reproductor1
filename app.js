@@ -33,18 +33,20 @@ fileInput.addEventListener("change", async () => {
   const files = Array.from(fileInput.files);
 
   for (const file of files) {
-    const res = await uploadToCloudinary(file);
+    const cloudRes = await uploadToCloudinary(file);
 
     songs.push({
-      name: res.original_filename,
-      url: res.secure_url,
+      name: cloudRes.original_filename,
+      url: cloudRes.secure_url,
       duration: 0
     });
   }
 
   saveSongs();
   renderList();
+  fileInput.value = ""; // 🔑 permite volver a subir los mismos archivos
 });
+
 
 /* =========================
    LISTA
@@ -94,6 +96,22 @@ function playSong(index) {
   audio.pause();
   audio.src = song.url;
   audio.load();               // 🔑 CLAVE
+  currentTitle.textContent = song.name;
+
+  audio.play().catch(err => {
+    console.log("Play bloqueado:", err);
+  });
+
+  renderList();
+}
+function playSong(index) {
+  currentIndex = index;
+  const song = songs[index];
+
+  audio.pause();
+  audio.src = song.url;
+  audio.load();
+
   currentTitle.textContent = song.name;
 
   audio.play().catch(err => {
@@ -191,9 +209,11 @@ function saveSongs() {
 
 function loadSongs() {
   const stored = JSON.parse(localStorage.getItem("songs"));
-  if (stored) songs = stored;
-  renderList();
+  if (stored && Array.isArray(stored)) {
+    songs = stored;
+  }
 }
+
 
 loadSongs();
 

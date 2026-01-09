@@ -381,3 +381,7 @@ body {
 .fav-btn:hover {
   transform: scale(1.2);
 }
+/* Evita que el player tape la lista en móvil */
+.main {
+  padding-bottom: 200px;
+}
