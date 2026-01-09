@@ -27,65 +27,51 @@ let currentIndex = -1;
 let shuffle = false;
 
 /* =========================
-   SUBIR A SUPABASE
+   UPLOAD
 ========================= */
 fileInput.addEventListener("change", async () => {
   const files = [...fileInput.files];
   if (!files.length) return;
 
-  alert("Subiendo música...");
-
   for (const file of files) {
-    const path = `biblioteca1/${Date.now()}_${file.name}`;
+    const filePath = `${Date.now()}_${file.name}`;
 
-    const { error } = await supabase.storage
+    const { error } = await supabase
+      .storage
       .from("biblioteca1")
-      .upload(path, file);
+      .upload(filePath, file);
 
     if (error) {
-      alert("Error subiendo: " + error.message);
+      alert(error.message);
       continue;
     }
 
-    const { data } = supabase.storage
+    const { data } = supabase
+      .storage
       .from("biblioteca1")
-      .getPublicUrl(path);
+      .getPublicUrl(filePath);
 
     songs.push({
       name: file.name,
-      url: data.publicUrl,
-      duration: 0
+      url: data.publicUrl
     });
   }
 
-  saveSongs();
+  localStorage.setItem("songs", JSON.stringify(songs));
   renderList();
   fileInput.value = "";
 });
 
 /* =========================
-   LISTA
+   LIST
 ========================= */
 function renderList() {
   songList.innerHTML = "";
 
-  songs.forEach((song, index) => {
+  songs.forEach((song, i) => {
     const li = document.createElement("li");
-    li.className = "song-item";
-    if (index === currentIndex) li.classList.add("active");
-
-    const title = document.createElement("span");
-    title.textContent = song.name;
-    title.onclick = () => playSong(index);
-
-    const del = document.createElement("button");
-    del.textContent = "🗑️";
-    del.onclick = e => {
-      e.stopPropagation();
-      deleteSong(index);
-    };
-
-    li.append(title, del);
+    li.textContent = song.name;
+    li.onclick = () => playSong(i);
     songList.appendChild(li);
   });
 }
@@ -93,18 +79,11 @@ function renderList() {
 /* =========================
    PLAYER
 ========================= */
-function playSong(index) {
-  currentIndex = index;
-  const song = songs[index];
-
-  audio.pause();
-  audio.src = song.url;
-  audio.load();
-
-  currentTitle.textContent = song.name;
-
-  audio.play().catch(() => {});
-  renderList();
+function playSong(i) {
+  currentIndex = i;
+  audio.src = songs[i].url;
+  currentTitle.textContent = songs[i].name;
+  audio.play();
 }
 
 function playPause() {
@@ -114,74 +93,44 @@ function playPause() {
 
 function next() {
   if (!songs.length) return;
-  currentIndex = shuffle
-    ? Math.floor(Math.random() * songs.length)
-    : (currentIndex + 1) % songs.length;
-  playSong(currentIndex);
+  playSong((currentIndex + 1) % songs.length);
 }
 
 function prev() {
   if (!songs.length) return;
-  currentIndex = (currentIndex - 1 + songs.length) % songs.length;
-  playSong(currentIndex);
+  playSong((currentIndex - 1 + songs.length) % songs.length);
+}
+
+function toggleShuffle() {
+  shuffle = !shuffle;
+  shuffleBtn.style.color = shuffle ? "green" : "black";
 }
 
 /* =========================
-   PROGRESO
+   PROGRESS
 ========================= */
 audio.addEventListener("timeupdate", () => {
   progress.value = (audio.currentTime / audio.duration) * 100 || 0;
-  currentTimeEl.textContent = formatTime(audio.currentTime);
+  currentTimeEl.textContent = format(audio.currentTime);
 });
 
 audio.addEventListener("loadedmetadata", () => {
-  totalTimeEl.textContent = formatTime(audio.duration);
+  totalTimeEl.textContent = format(audio.duration);
 });
 
-progress.addEventListener("input", () => {
+progress.oninput = () => {
   audio.currentTime = (progress.value / 100) * audio.duration;
-});
+};
 
-audio.addEventListener("ended", next);
-
-/* =========================
-   EXTRAS
-========================= */
-function toggleShuffle() {
-  shuffle = !shuffle;
-  shuffleBtn.style.color = shuffle ? "#1db954" : "white";
-}
-
-function deleteSong(index) {
-  if (!confirm("¿Eliminar canción?")) return;
-  songs.splice(index, 1);
-  saveSongs();
-  renderList();
-}
-
-/* =========================
-   UI
-========================= */
-audio.addEventListener("play", () => playBtn.textContent = "⏸");
-audio.addEventListener("pause", () => playBtn.textContent = "▶️");
-
-/* =========================
-   STORAGE
-========================= */
-function saveSongs() {
-  localStorage.setItem("songs", JSON.stringify(songs));
-}
-
-function loadSongs() {
-  const stored = JSON.parse(localStorage.getItem("songs"));
-  if (stored) songs = stored;
-}
-
-function formatTime(sec) {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60).toString().padStart(2, "0");
+function format(t) {
+  const m = Math.floor(t / 60);
+  const s = Math.floor(t % 60).toString().padStart(2, "0");
   return `${m}:${s}`;
 }
 
-loadSongs();
+/* =========================
+   INIT
+========================= */
+const saved = localStorage.getItem("songs");
+if (saved) songs = JSON.parse(saved);
 renderList();

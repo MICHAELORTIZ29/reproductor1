@@ -1,90 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Spotify</title>
-
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1db954">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reproductor</title>
 </head>
-
-
-<div id="uploadOverlay" class="upload-overlay hidden">
-  <div class="upload-box">
-    <p id="uploadText">Subiendo música…</p>
-    <div class="spinner"></div>
-  </div>
-</div>
-
 <body>
 
-<div class="app">
+  <input type="file" id="fileInput" multiple accept="audio/*" />
+  <ul id="songList"></ul>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <h1>🎵 Mi Spotify</h1>
+  <audio id="audio"></audio>
 
-    <button class="upload-btn">
-      Subir música
-      <input type="file" id="fileInput" accept="audio/*" multiple>
-    </button>
-
-    <div class="menu">
-      <button onclick="toggleShuffle()">🔀 Aleatorio</button>
-      <button onclick="showFavorites()">❤️ Favoritos</button>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <h2>Tu música</h2>
-    <ul id="songList"></ul>
-  </main>
-
-</div>
-
-<!-- PLAYER -->
-<footer class="player">
-
-  <div class="player-top">
-    <span id="currentTitle">Sin reproducción</span>
+  <div>
+    <button onclick="prev()">⏮</button>
+    <button class="play-btn" onclick="playPause()">▶️</button>
+    <button onclick="next()">⏭</button>
+    <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
   </div>
 
-  <div class="player-progress">
+  <div>
+    <span id="currentTitle">---</span><br>
     <span id="currentTime">0:00</span>
-    <input type="range" id="progress" value="0">
+    <input type="range" id="progress" min="0" max="100" value="0">
     <span id="totalTime">0:00</span>
   </div>
 
-  <div class="player-bottom">
+  <!-- 🔴 SUPABASE SOLO AQUÍ -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <div class="controls">
-      <button onclick="prev()">⏮</button>
-      <button class="play-btn" onclick="playPause()">▶️</button>
-      <button onclick="next()">⏭</button>
-      <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
-
-    </div>
-
-
-
-  </div>
-
-  <!-- AUDIO (OBLIGATORIO) -->
- <audio id="audio" preload="metadata"></audio>
-
-
-</footer>
-<!-- Supabase CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Tu código -->
-<script src="app.js"></script>
-
-
-
-
+  <!-- 🔴 TU APP -->
+  <script src="app.js"></script>
 </body>
 </html>
