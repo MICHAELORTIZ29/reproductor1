@@ -19,41 +19,78 @@ let shuffle = false;
    CLOUDINARY
 ========================= */
 async function uploadToCloudinary(file) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60000); // 60s
+
   const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", UPLOAD_PRESET);
 
-  const res = await fetch(url, { method: "POST", body: formData });
-  return await res.json();
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+    return await res.json();
+  } catch (err) {
+    console.error("Cloudinary no respondió", err);
+    return null;
+  }
 }
+
 
 /* =========================
    SUBIR MÚSICA
 ========================= */
+const overlay = document.getElementById("uploadOverlay");
+const uploadText = document.getElementById("uploadText");
+
 fileInput.addEventListener("change", async () => {
   const files = Array.from(fileInput.files);
   if (!files.length) return;
 
-  for (const file of files) {
-    try {
-      const cloud = await uploadToCloudinary(file);
-      if (!cloud.secure_url) continue;
+  fileInput.disabled = true;
+  overlay.classList.remove("hidden");
 
-      songs.push({
-        name: cloud.original_filename || file.name,
-        url: cloud.secure_url,
-        duration: 0
-      });
-    } catch (e) {
-      console.error("Error subida:", e);
+  let added = 0;
+
+  for (const file of files) {
+    uploadText.textContent = `Subiendo: ${file.name}`;
+
+    const cloud = await uploadToCloudinary(file);
+
+    if (!cloud || !cloud.secure_url) {
+      alert(
+        "⚠️ Cloudinary no aceptó el archivo.\n" +
+        "Posible límite alcanzado o preset bloqueado."
+      );
+      break;
     }
+
+    songs.push({
+      name: cloud.original_filename || file.name,
+      url: cloud.secure_url,
+      duration: 0
+    });
+
+    added++;
   }
 
-  saveSongs();
-  renderList();
+  overlay.classList.add("hidden");
+  fileInput.disabled = false;
   fileInput.value = "";
+
+  if (added > 0) {
+    saveSongs();
+    renderList();
+    alert(`✅ ${added} canción(es) subida(s) correctamente`);
+  }
 });
+
 
 /* =========================
    LISTA
